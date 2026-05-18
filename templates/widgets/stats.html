@@ -1,0 +1,107 @@
+{# Platform Stats Widget #}
+<div class="row">
+  <div class="col-md-2 col-4 stat-box">
+    <div class="number" id="stat-tenants">
+      {% if widget_data.stats.tenants is not none %}
+        {{ widget_data.stats.tenants }}
+      {% else %}
+        <span class="spinner-border spinner-border-sm" style="width: 1.2rem; height: 1.2rem;"></span>
+      {% endif %}
+    </div>
+    <div class="label">Tenants</div>
+  </div>
+  <div class="col-md-2 col-4 stat-box">
+    <div class="number" id="stat-management_groups">
+      {% if widget_data.stats.management_groups is not none %}
+        {{ widget_data.stats.management_groups }}
+      {% else %}
+        <span class="spinner-border spinner-border-sm" style="width: 1.2rem; height: 1.2rem;"></span>
+      {% endif %}
+    </div>
+    <div class="label">Mgmt Groups</div>
+  </div>
+  <div class="col-md-2 col-4 stat-box">
+    <div class="number" id="stat-subscriptions">
+      {% if widget_data.stats.subscriptions is not none %}
+        {{ widget_data.stats.subscriptions }}
+      {% else %}
+        <span class="spinner-border spinner-border-sm" style="width: 1.2rem; height: 1.2rem;"></span>
+      {% endif %}
+    </div>
+    <div class="label">Subscriptions</div>
+  </div>
+  <div class="col-md-2 col-4 stat-box">
+    <div class="number" id="stat-resource_groups">
+      {% if widget_data.stats.resource_groups is not none %}
+        {{ widget_data.stats.resource_groups }}
+      {% else %}
+        <span class="spinner-border spinner-border-sm" style="width: 1.2rem; height: 1.2rem;"></span>
+      {% endif %}
+    </div>
+    <div class="label">Resource Groups</div>
+  </div>
+  <div class="col-md-2 col-4 stat-box">
+    <div class="number" id="stat-locations">
+      {% if widget_data.stats.locations is not none %}
+        {{ widget_data.stats.locations }}
+      {% else %}
+        <span class="spinner-border spinner-border-sm" style="width: 1.2rem; height: 1.2rem;"></span>
+      {% endif %}
+    </div>
+    <div class="label">Locations</div>
+  </div>
+  <div class="col-md-2 col-4 stat-box">
+    <div class="number" id="stat-providers">
+      {% if widget_data.stats.providers is not none %}
+        {{ widget_data.stats.providers }}
+      {% else %}
+        <span class="spinner-border spinner-border-sm" style="width: 1.2rem; height: 1.2rem;"></span>
+      {% endif %}
+    </div>
+    <div class="label">Providers</div>
+  </div>
+</div>
+
+<script>
+  // Load stats asynchronously without blocking page render
+  document.addEventListener('DOMContentLoaded', async function() {
+    try {
+      const response = await fetch('/api/stats', { timeout: 10000 });
+      if (response.ok) {
+        const stats = await response.json();
+        
+        // Update each stat in DOM
+        const statMap = {
+          'tenants': 'stat-tenants',
+          'management_groups': 'stat-management_groups',
+          'subscriptions': 'stat-subscriptions',
+          'resource_groups': 'stat-resource_groups',
+          'locations': 'stat-locations',
+          'providers': 'stat-providers'
+        };
+        
+        for (const [key, elementId] of Object.entries(statMap)) {
+          const element = document.getElementById(elementId);
+          if (element) {
+            const value = stats[key];
+            // Show value or error indicator if timeout (-1)
+            if (value === -1) {
+              element.innerHTML = '<span title="Request timeout">⏱</span>';
+            } else if (value === 0) {
+              element.textContent = '0';
+            } else {
+              element.textContent = value || '0';
+            }
+          }
+        }
+      }
+    } catch (error) {
+      console.warn('Failed to load stats:', error);
+      // Keep loading spinners visible if fetch fails
+      document.querySelectorAll('.stat-box .number .spinner-border').forEach(el => {
+        el.remove();
+        el.parentElement.textContent = '?';
+      });
+    }
+  });
+</script>
